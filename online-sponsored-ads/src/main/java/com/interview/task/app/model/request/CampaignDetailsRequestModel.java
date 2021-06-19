@@ -3,14 +3,23 @@ package com.interview.task.app.model.request;
 import java.math.BigDecimal;
 import java.util.Date;
 
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 public class CampaignDetailsRequestModel {
+	@NotEmpty(message = "name is mandatory")
 	private String name;
 	
 	@JsonFormat(pattern="yyyy-MM-dd")
+	@NotNull(message = "startDate is mandatory")
 	private Date startDate;
+	
+	@NotEmpty(message = "category is mandatory")	
 	private String category;
+	
+	@NotNull(message = "bid is mandatory")
 	private BigDecimal bid;
 	public CampaignDetailsRequestModel(String name, Date startDate, String category, BigDecimal bid) {
 		super();

@@ -1,4 +1,4 @@
-package com.interview.task.app.service;
+package com.interview.task.app.service.impl;
 
 import java.math.BigDecimal;
 import java.util.Calendar;
@@ -9,15 +9,17 @@ import java.util.UUID;
 import javax.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import com.interview.task.app.exception.CreationFailedException;
+import com.interview.task.app.exception.ResourceNotFoundException;
 import com.interview.task.app.model.entity.Campaign;
 import com.interview.task.app.model.entity.Product;
 import com.interview.task.app.model.request.CampaignDetailsRequestModel;
-import com.interview.task.app.model.request.ProductDetailsRequestModel;
 import com.interview.task.app.model.request.ServeAdDetailsRequestModel;
 import com.interview.task.app.repository.CampaignRepository;
+import com.interview.task.app.service.CampaignService;
+import com.interview.task.app.service.ProductService;
 @Service
 public class CampaignServiceImpl implements CampaignService{
 	@Autowired
@@ -27,18 +29,15 @@ public class CampaignServiceImpl implements CampaignService{
 	ProductService productService;
 	
 	@Transactional
-    public ResponseEntity<Object> addCampaign(CampaignDetailsRequestModel campaignDetails)  {
-		System.out.println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
-		System.out.println(campaignDetails.getStartDate());
+    public Campaign addCampaign(CampaignDetailsRequestModel campaignDetails)  {
 		List<Product> products = productService.getProductByCategory(campaignDetails.getCategory());
 		Campaign campaign = new Campaign(UUID.randomUUID(), campaignDetails.getName(), campaignDetails.getStartDate(), campaignDetails.getCategory(), campaignDetails.getBid(), products);
 		campaignRepository.save(campaign);
+		
 		if(!campaignRepository.existsById(campaign.getId())) {
-			return ResponseEntity.unprocessableEntity().body("Campaign Creation Failed");
-	
-    	}else{
-     		return ResponseEntity.unprocessableEntity().body("Campaign Creation Succsess");
-     	}
+			throw new CreationFailedException("Campaign Creation Succsess");			
+		}
+		return campaignRepository.findById(campaign.getId()).get();
 		
 	}
 	
@@ -48,29 +47,17 @@ public class CampaignServiceImpl implements CampaignService{
         cal.add(Calendar.DATE, -10);
         Date startDate = cal.getTime();   
         System.out.println(serveAdDetails.getCategory());
-		BigDecimal bid = campaignRepository.findMaxBidByCategoryAndStartDate(startDate, serveAdDetails.getCategory());
-		System.out.println("******************************************");
-		System.out.println(bid);
-		if(bid!=null) {
-			List<Campaign> campaigns = campaignRepository.findCampaignByBidAndCategoryAndStartDate(bid, startDate, serveAdDetails.getCategory());
-			System.out.println(campaigns.get(0));
-			return campaigns.get(0).getProducts().get(0);
-		}
-		else {
-			List<Campaign> campaigns = campaignRepository.findCampaignByStartDate(startDate);
-			BigDecimal max_bid = BigDecimal.ZERO;
-			Campaign maxCampaign = null;
+        List<Campaign> campaigns = campaignRepository.findCampaignByCategoryAndStartDateOrderByBid(startDate, serveAdDetails.getCategory());		
+		if(!campaigns.isEmpty()) {
 			
-			for(Campaign campaign :campaigns) {
-				if(campaign.getBid().compareTo(max_bid)>0)
-					maxCampaign=campaign;
-				
-			}
-			if(maxCampaign!=null)
-				return maxCampaign.getProducts().get(0);
-			return null;
+			return campaigns.get(0).getProducts().get(campaigns.get(0).getProducts().size()-1);
 		}
-		
+		campaigns = campaignRepository.findCampaignByStartDateOrderByBid(startDate);
+		if(!campaigns.isEmpty()) {
+			System.out.println(campaigns);
+			return campaigns.get(0).getProducts().get(campaigns.get(0).getProducts().size()-1);
+		}
+		throw new ResourceNotFoundException("No active campaigns in db");		
 		
 	}
 

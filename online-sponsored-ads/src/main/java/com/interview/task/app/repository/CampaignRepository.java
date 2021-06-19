@@ -14,14 +14,11 @@ import com.interview.task.app.model.entity.Campaign;
 @Repository
 public interface CampaignRepository extends CrudRepository<Campaign, UUID>{
 	
-	@Query(value = "SELECT max(c.bid) FROM Campaign c WHERE c.startDate >= :startDate and c.category = :category")
-	BigDecimal findMaxBidByCategoryAndStartDate(@Param("startDate") Date startDate, @Param("category") String category);
+	@Query(value = "SELECT c FROM Campaign c WHERE c.startDate >= :startDate and c.category = :category order by c.bid desc")
+	List<Campaign> findCampaignByCategoryAndStartDateOrderByBid(@Param("startDate") Date startDate, @Param("category") String category);
 	
-	@Query(value = "SELECT c FROM Campaign c WHERE c.bid = :bid and c.startDate >= :startDate and c.category = :category")
-	List<Campaign> findCampaignByBidAndCategoryAndStartDate(@Param("bid") BigDecimal bid,@Param("startDate") Date startDate, @Param("category") String category);
-	
-	@Query(value = "SELECT c FROM Campaign c WHERE c.startDate >= :startDate")
-	List<Campaign> findCampaignByStartDate(@Param("startDate") Date startDate);
+	@Query(value = "SELECT c FROM Campaign c WHERE c.startDate >= :startDate order by c.bid desc")
+	List<Campaign> findCampaignByStartDateOrderByBid(@Param("startDate") Date startDate);
 	
 	
 

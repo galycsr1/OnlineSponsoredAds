@@ -2,10 +2,20 @@ package com.interview.task.app.model.request;
 
 import java.math.BigDecimal;
 
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+
 public class ProductDetailsRequestModel {
+	
+	@NotEmpty(message = "title is mandatory")
 	private String title;
+	
+	@NotEmpty(message = "category is mandatory")
 	private String category;
+	
+	@NotNull(message = "price is mandatory")
 	private BigDecimal price;
+	
 	public ProductDetailsRequestModel(String title, String category, BigDecimal price) {
 		super();
 		this.title = title;

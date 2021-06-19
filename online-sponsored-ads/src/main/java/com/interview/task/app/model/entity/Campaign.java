@@ -25,7 +25,7 @@ public class Campaign {
 	private String category;
 	private BigDecimal bid;
 	
-	@ManyToMany(targetEntity = Product.class , fetch = FetchType.EAGER)
+	@ManyToMany(targetEntity = Product.class , fetch = FetchType.LAZY)
 	private List<Product> products;
 	
 	public Campaign() {
